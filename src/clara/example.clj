@@ -1,5 +1,7 @@
 (ns clara.example
-  (:require [clara.rules :refer :all]))
+  (:require  [clara.rules :refer :all]
+              [clara.rules.accumulators :as acc]
+             ))
 
 (defrecord SupportRequest [client level])
 
@@ -49,9 +51,23 @@
   =>
   (println  (str ?name1 " is older than " ?name2)))
 
+(def youngest (acc/min :age ))
+
+(defrule years-5
+  [Person (= age 5) (= ?name name)]
+  [?youngest <- youngest :from [Person]]
+  =>
+  (println (str ?name " ima 5 godina " ?youngest) )
+  )
+
+(defrule youngest-person
+  [?youngest-age <- youngest :from [Person]]
+  [Person (= ?youngest-age age)(= ?name name) ]
+  =>
+  (println  (str ?name " ima najmanje godina ")))
 
 (defn run-rules
-  []  ((->  (mk-session 'clara.example)
+  []  (->  (mk-session 'clara.example)
            (insert  (->ClientRepresentative "Alice" "Acme")
                    (->SupportRequest "Acme" :high)
                    (->Person "Iva" 5 "Bilja")
@@ -59,4 +75,5 @@
                    (->Person "Vlada" 37 "Ljilja")
                    (->Person "Bilja" 40 "Mira")
                    )
-           (fire-rules))))
+           (fire-rules)) )
+
